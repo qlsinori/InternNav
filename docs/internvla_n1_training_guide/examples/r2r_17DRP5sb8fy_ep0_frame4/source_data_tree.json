@@ -1,0 +1,313 @@
+{
+  "_provenance_comment": {
+    "file_role": "这是教学用的来源索引，由检查脚本汇总生成；它不是原始 R2R/LeRobot 文件，训练代码也不会读取 source_data_tree.json",
+    "no_single_original_file": "本文件没有一个同名的“原来文件”。它同时索引 raw R2R 任务、LeRobot meta、Parquet、RGB/depth，以及脚本从这些输入计算出的训练标签",
+    "generated_by": "/workspace/flow/work_space/InternNav/scripts/inspect_vln_training_sample.py",
+    "reproduce_command": ".venv/bin/python scripts/inspect_vln_training_sample.py --scene 17DRP5sb8fy --episode 0 --frame 4 --output-dir docs/internvla_n1_training_guide/examples/r2r_17DRP5sb8fy_ep0_frame4",
+    "path_legend": {
+      "source_container/source_root/source_path": "共享盘上的原始数据位置",
+      "viewable_export/local_sample": "为便于在 VS Code 打开而放在本目录的副本或解包文件",
+      "selected_record/selected_frame_export": "从较大的原始容器中抽出的本例记录",
+      "derived_training_view": "按 Dataset 预处理规则计算出的教学结果，原始磁盘上没有这些文件"
+    },
+    "complete_hash_manifest": "manifest.json 记录每个原始输入的绝对路径、字节数和 SHA-256"
+  },
+  "raw_r2r_task_definition": {
+    "_comment": "来源于下面 gzip 解压后的 episodes[514]。viewable_export 只抽出这一条 episode，并额外标注 raw_array_index，不是整个 train.json.gz",
+    "source_container": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/raw_data/r2r/train/train.json.gz",
+    "source_record": {
+      "json_path": "episodes[514]",
+      "raw_array_index_zero_based": 514,
+      "episode_id": 515,
+      "trajectory_id": 338
+    },
+    "viewable_export": "raw_r2r_episode_515.json",
+    "viewable_export_relation": "从 source_container 解压并抽取 source_record；保留原字段，另加 raw_array_index",
+    "contains": [
+      "episode_id and trajectory_id",
+      "scene_id and natural-language instruction",
+      "start_position and start_rotation",
+      "goal and reference_path"
+    ],
+    "does_not_contain": [
+      "per-frame RGB/depth",
+      "per-frame pose",
+      "per-frame action"
+    ]
+  },
+  "lerobot_scene": {
+    "_comment": "这是逐帧 demonstration 的原始 scene 目录。它与上面的 raw episode 没有显式 ID 映射；本例通过 scene=17DRP5sb8fy 且 instruction 唯一完全相同建立对应关系",
+    "source_root": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy",
+    "raw_r2r_match": {
+      "rule": "same scene + unique exact instruction",
+      "raw_episode_id": 515,
+      "lerobot_episode_index": 0,
+      "ids_are_not_equal_or_interchangeable": true
+    },
+    "meta": {
+      "info.json": {
+        "_comment": "viewable_export 是 source_path 的逐字节副本",
+        "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/info.json",
+        "viewable_export": "lerobot_info.json",
+        "viewable_export_relation": "byte-for-byte copy",
+        "contains": "scene totals, fps, file templates, declared feature schema"
+      },
+      "episodes.jsonl": {
+        "_comment": "viewable_export 是完整源文件的逐字节副本；selected_record 是其中 episode_index=0 的一行重新格式化为 JSON",
+        "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/episodes.jsonl",
+        "viewable_export": "lerobot_episodes.jsonl",
+        "viewable_export_relation": "byte-for-byte copy of all JSONL records",
+        "selected_record": "lerobot_episode_000000.json",
+        "selected_record_locator": "record where episode_index == 0",
+        "contains": "scene-local episode_index, instruction list, frame length"
+      },
+      "episodes_stats.jsonl": {
+        "_comment": "viewable_export 是完整源文件的逐字节副本；selected_record 是其中 episode_index=0 的统计记录",
+        "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/episodes_stats.jsonl",
+        "viewable_export": "lerobot_episodes_stats.jsonl",
+        "viewable_export_relation": "byte-for-byte copy of all JSONL records",
+        "selected_record": "lerobot_episode_000000_stats.json",
+        "selected_record_locator": "record where episode_index == 0",
+        "contains": "per-episode min/max/mean/std/count for declared features"
+      },
+      "tasks.jsonl": {
+        "_comment": "viewable_export 是完整源文件的逐字节副本；selected_record 是与本 episode instruction 完全相同的 task 记录",
+        "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/tasks.jsonl",
+        "viewable_export": "lerobot_tasks.jsonl",
+        "viewable_export_relation": "byte-for-byte copy of all JSONL records",
+        "selected_record": "lerobot_task_000000.json",
+        "selected_record_locator": "record where task_index == 0",
+        "contains": "task_index to instruction text mapping"
+      }
+    },
+    "data": {
+      "episode_000000.parquet": {
+        "_comment": "source_path 是训练 loader 读取的二进制 Parquet 原件。JSON/JSONL/CSV 都是为了阅读而导出的视图，不是另一个原始数据源",
+        "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/data/chunk-000/episode_000000.parquet",
+        "rows": 46,
+        "columns": 56,
+        "all_rows_all_columns_export": "parquet_episode_000000_all_46x56.jsonl",
+        "all_rows_all_columns_export_relation": "Parquet 全部行列经 PyArrow 读取后转为可读 JSONL；每行对应一个 frame",
+        "selected_frame_export": "parquet_frame_000004.json",
+        "selected_frame_locator": {
+          "zero_based_row_index": 4,
+          "frame_index": 4
+        },
+        "schema_export": "parquet_schema.txt",
+        "schema_export_relation": "未经注释的原始 Arrow schema，供程序类型核对",
+        "schema_markdown_export": "parquet_schema.md",
+        "schema_markdown_export_relation": "VLN 小白版 Markdown：先解释 camera setting、真实 frame、标签和 loss，附录再覆盖 56 列含义、frame 实值、来源和当前 loader 使用情况",
+        "human_summary_export": "frames.csv",
+        "human_summary_export_relation": "从 56 列中抽取少量教学字段并加入 decision 解释"
+      }
+    },
+    "videos": {
+      "_comment": "source_root 下是逐帧原始媒体。每个 stream 的 local_sample 是 frame 4 原件副本；只有 local_preview 是为了看 depth 而生成的派生图",
+      "source_root": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos",
+      "layout": "10 directories = 5 camera settings x RGB/depth",
+      "stream_index_export": "media_streams.json",
+      "streams": [
+        {
+          "stream": "observation.images.depth.125cm_0deg",
+          "kind": "depth",
+          "camera_setting": "125cm_0deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "I;16",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_0deg/episode_000000_4.png",
+          "local_sample": "media_depth_125cm_0deg_frame000004_raw_mm.png",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+          "units": "millimeters in raw PNG",
+          "nonzero_range_mm": [
+            1175,
+            5019
+          ],
+          "local_preview": "media_depth_125cm_0deg_frame000004_preview_0_5m.png",
+          "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+        },
+        {
+          "stream": "observation.images.depth.125cm_30deg",
+          "kind": "depth",
+          "camera_setting": "125cm_30deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "I;16",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_30deg/episode_000000_4.png",
+          "local_sample": "media_depth_125cm_30deg_frame000004_raw_mm.png",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+          "units": "millimeters in raw PNG",
+          "nonzero_range_mm": [
+            895,
+            5001
+          ],
+          "local_preview": "media_depth_125cm_30deg_frame000004_preview_0_5m.png",
+          "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+        },
+        {
+          "stream": "observation.images.depth.125cm_45deg",
+          "kind": "depth",
+          "camera_setting": "125cm_45deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "I;16",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_45deg/episode_000000_4.png",
+          "local_sample": "media_depth_125cm_45deg_frame000004_raw_mm.png",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+          "units": "millimeters in raw PNG",
+          "nonzero_range_mm": [
+            812,
+            4483
+          ],
+          "local_preview": "media_depth_125cm_45deg_frame000004_preview_0_5m.png",
+          "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+        },
+        {
+          "stream": "observation.images.depth.60cm_15deg",
+          "kind": "depth",
+          "camera_setting": "60cm_15deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "I;16",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_15deg/episode_000000_4.png",
+          "local_sample": "media_depth_60cm_15deg_frame000004_raw_mm.png",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+          "units": "millimeters in raw PNG",
+          "nonzero_range_mm": [
+            397,
+            6234
+          ],
+          "local_preview": "media_depth_60cm_15deg_frame000004_preview_0_5m.png",
+          "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+        },
+        {
+          "stream": "observation.images.depth.60cm_30deg",
+          "kind": "depth",
+          "camera_setting": "60cm_30deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "I;16",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_30deg/episode_000000_4.png",
+          "local_sample": "media_depth_60cm_30deg_frame000004_raw_mm.png",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+          "units": "millimeters in raw PNG",
+          "nonzero_range_mm": [
+            385,
+            5778
+          ],
+          "local_preview": "media_depth_60cm_30deg_frame000004_preview_0_5m.png",
+          "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+        },
+        {
+          "stream": "observation.images.rgb.125cm_0deg",
+          "kind": "rgb",
+          "camera_setting": "125cm_0deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "RGB",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_0deg/episode_000000_4.jpg",
+          "local_sample": "media_rgb_125cm_0deg_frame000004.jpg",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+        },
+        {
+          "stream": "observation.images.rgb.125cm_30deg",
+          "kind": "rgb",
+          "camera_setting": "125cm_30deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "RGB",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_30deg/episode_000000_4.jpg",
+          "local_sample": "media_rgb_125cm_30deg_frame000004.jpg",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+        },
+        {
+          "stream": "observation.images.rgb.125cm_45deg",
+          "kind": "rgb",
+          "camera_setting": "125cm_45deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "RGB",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_45deg/episode_000000_4.jpg",
+          "local_sample": "media_rgb_125cm_45deg_frame000004.jpg",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+        },
+        {
+          "stream": "observation.images.rgb.60cm_15deg",
+          "kind": "rgb",
+          "camera_setting": "60cm_15deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "RGB",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_15deg/episode_000000_4.jpg",
+          "local_sample": "media_rgb_60cm_15deg_frame000004.jpg",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+        },
+        {
+          "stream": "observation.images.rgb.60cm_30deg",
+          "kind": "rgb",
+          "camera_setting": "60cm_30deg",
+          "episode_frame_count": 46,
+          "sample_frame": 4,
+          "shape_wh": [
+            640,
+            480
+          ],
+          "pillow_mode": "RGB",
+          "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_30deg/episode_000000_4.jpg",
+          "local_sample": "media_rgb_60cm_30deg_frame000004.jpg",
+          "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+        }
+      ]
+    }
+  },
+  "derived_training_view": {
+    "_comment": "以下内容由检查脚本根据 Parquet pose/action/goal 和 Dataset 规则计算。它们没有对应的单个原始文件，也不是训练集磁盘格式",
+    "primary_source": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/data/chunk-000/episode_000000.parquet",
+    "reference_implementation": "/workspace/flow/work_space/InternNav/internnav/dataset/internvla_n1_lerobot_dataset.py",
+    "decision_split": "decision_samples.json",
+    "decision_split_relation": "由 episode 的 action、goal、relative_goal_frame_id 按采样规则划分 pixel-goal/turn/discarded/stop",
+    "selected_system2_targets": [
+      "↓",
+      "258 332"
+    ],
+    "selected_system2_targets_relation": "↓ 是 look-down 请求符号；258 332 来自 frame 4 的 goal.125cm_30deg=[u,v]",
+    "trajectory_ground_truth": "trajectory_gt.json",
+    "trajectory_ground_truth_csv": "trajectory_gt.csv",
+    "trajectory_ground_truth_relation": "由 pose 窗口做相对坐标变换、插值并按 anchor 整理成 [6,32,3]；JSON 与 CSV 是同一结果"
+  }
+}

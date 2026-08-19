@@ -1,0 +1,88 @@
+action: int32
+pose.125cm_0deg: list<element: list<element: float>>
+  child 0, element: list<element: float>
+      child 0, element: float
+goal.125cm_0deg: list<element: int32>
+  child 0, element: int32
+relative_goal_frame_id.125cm_0deg: int32
+pose.125cm_30deg: list<element: list<element: float>>
+  child 0, element: list<element: float>
+      child 0, element: float
+goal.125cm_30deg: list<element: int32>
+  child 0, element: int32
+relative_goal_frame_id.125cm_30deg: int32
+pose.125cm_45deg: list<element: list<element: float>>
+  child 0, element: list<element: float>
+      child 0, element: float
+goal.125cm_45deg: list<element: int32>
+  child 0, element: int32
+relative_goal_frame_id.125cm_45deg: int32
+pose.60cm_15deg: list<element: list<element: float>>
+  child 0, element: list<element: float>
+      child 0, element: float
+goal.60cm_15deg: list<element: int32>
+  child 0, element: int32
+relative_goal_frame_id.60cm_15deg: int32
+pose.60cm_30deg: list<element: list<element: float>>
+  child 0, element: list<element: float>
+      child 0, element: float
+goal.60cm_30deg: list<element: int32>
+  child 0, element: int32
+relative_goal_frame_id.60cm_30deg: int32
+timestamp: float
+frame_index: int64
+episode_index: int64
+index: int64
+task_index: int64
+local_point_goal.60cm_30deg: list<element: double>
+  child 0, element: double
+local_point_goal_prompt.60cm_30deg: string
+local_point_goal.125cm_45deg: list<element: double>
+  child 0, element: double
+local_point_goal_prompt.125cm_45deg: string
+local_point_goal.125cm_30deg: list<element: double>
+  child 0, element: double
+local_point_goal_prompt.125cm_30deg: string
+local_point_goal.60cm_15deg: list<element: double>
+  child 0, element: double
+local_point_goal_prompt.60cm_15deg: string
+local_point_goal.125cm_0deg: list<element: double>
+  child 0, element: double
+local_point_goal_prompt.125cm_0deg: string
+final_point_goal.60cm_30deg: list<element: double>
+  child 0, element: double
+final_point_goal.125cm_45deg: list<element: double>
+  child 0, element: double
+final_point_goal.125cm_30deg: list<element: double>
+  child 0, element: double
+final_point_goal.60cm_15deg: list<element: double>
+  child 0, element: double
+final_point_goal.125cm_0deg: list<element: double>
+  child 0, element: double
+goal_prompt.60cm_30deg: string
+goal_prompt.125cm_45deg: string
+goal_prompt.125cm_30deg: string
+goal_prompt.60cm_15deg: string
+goal_prompt.125cm_0deg: string
+action_pixel_goal.60cm_30deg: list<element: int64>
+  child 0, element: int64
+action_pixel_goal_type.60cm_30deg: string
+goal_prompt_pixel.60cm_30deg: string
+action_pixel_goal.125cm_45deg: list<element: int64>
+  child 0, element: int64
+action_pixel_goal_type.125cm_45deg: string
+goal_prompt_pixel.125cm_45deg: string
+action_pixel_goal.125cm_30deg: list<element: int64>
+  child 0, element: int64
+action_pixel_goal_type.125cm_30deg: string
+goal_prompt_pixel.125cm_30deg: string
+action_pixel_goal.60cm_15deg: list<element: int64>
+  child 0, element: int64
+action_pixel_goal_type.60cm_15deg: string
+goal_prompt_pixel.60cm_15deg: string
+action_pixel_goal.125cm_0deg: list<element: int64>
+  child 0, element: int64
+action_pixel_goal_type.125cm_0deg: string
+goal_prompt_pixel.125cm_0deg: string
+-- schema metadata --
+pandas: '{"index_columns": [], "column_indexes": [], "columns": [{"name":' + 8592

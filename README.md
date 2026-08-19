@@ -63,6 +63,14 @@ The toolbox supports the most advanced high-quality navigation dataset, InternDa
 
 Please refer to the [documentation](https://internrobotics.github.io/user_guide/internnav/quick_start/index.html) for quick start with InternNav, from installation to training or evaluating supported models.
 
+For a source-level walkthrough of DualVLN training, data tensors, outputs, and losses, see the
+[Chinese InternVLA-N1 training code guide](docs/internvla_n1_training_guide/README.md).
+For one concrete raw R2R → LeRobot → System 2/System 1 example, see the
+[real-data walkthrough](docs/internvla_n1_training_guide/REAL_DATA_WALKTHROUGH.md) and its
+[openable JSON/CSV/image exports](docs/internvla_n1_training_guide/examples/r2r_17DRP5sb8fy_ep0_frame4/README.md).
+The complete disk → sample → collator → loss hierarchy is shown in the
+[DualVLN data-structure diagram](docs/internvla_n1_training_guide/DATA_STRUCTURE.md).
+
 ## 📦 Overview
 
 ### 🧪 Supported Benchmarks

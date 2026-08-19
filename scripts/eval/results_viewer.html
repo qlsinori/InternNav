@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InternNav val_unseen 轨迹查看器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #151c2f;
+      --panel-2: #1d2740;
+      --text: #ecf2ff;
+      --muted: #9aa9c5;
+      --accent: #72a7ff;
+      --ok: #4bd18b;
+      --border: #2b3856;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #16213d 0, var(--bg) 42%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { width: min(1800px, 96vw); margin: 24px auto 48px; }
+    h1 { margin: 0 0 6px; font-size: 26px; }
+    .subtitle, .hint { color: var(--muted); line-height: 1.55; }
+    .toolbar, .card {
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 12px 40px #0005;
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(280px, 2fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin: 18px 0;
+      padding: 14px;
+    }
+    input, select, button, a.button {
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 11px;
+      font: inherit;
+    }
+    select { width: 100%; }
+    button, a.button { cursor: pointer; text-decoration: none; }
+    button:hover, a.button:hover, button.active { border-color: var(--accent); background: #263657; }
+    .grid { display: grid; grid-template-columns: 4fr 5.1fr; gap: 14px; }
+    .card { padding: 14px; min-width: 0; }
+    .card h2 { font-size: 16px; margin: 0 0 10px; color: #cbd8ef; }
+    canvas { display: block; width: 100%; height: auto; background: #000; border-radius: 8px; }
+    video { width: 1px; height: 1px; position: fixed; left: -10px; bottom: -10px; opacity: 0.01; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+    .controls .group { display: flex; gap: 6px; align-items: center; }
+    .status { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .info { margin-top: 14px; display: grid; grid-template-columns: 2fr repeat(5, 0.7fr); gap: 10px; }
+    .metric { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 12px; }
+    .metric label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .metric strong { font-size: 18px; }
+    .instruction strong { font-size: 15px; line-height: 1.55; font-weight: 600; }
+    .ok { color: var(--ok); }
+    .explain { margin-top: 14px; padding: 14px 16px; }
+    kbd { border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; background: var(--panel-2); }
+    @media (max-width: 900px) {
+      .toolbar, .grid, .info { grid-template-columns: 1fr; }
+      .status { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>InternNav R2R val_unseen 轨迹查看器</h1>
+  <div class="subtitle">成功 episode 的当前相机观察、俯视轨迹、导航指令与指标。默认以 0.25× 播放。</div>
+
+  <div class="toolbar">
+    <input id="search" placeholder="搜索 scene 或 episode，例如 2azQ / 0011">
+    <select id="episode"><option>正在载入 progress.json…</option></select>
+    <a id="rawLink" class="button" target="_blank">打开原始 MP4</a>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>当前相机观察（模型视觉输入的原始来源）</h2>
+      <canvas id="camera" width="640" height="480"></canvas>
+    </section>
+    <section class="card">
+      <h2>Habitat 俯视地图与已走轨迹</h2>
+      <canvas id="map" width="816" height="480"></canvas>
+    </section>
+  </div>
+
+  <video id="video" preload="auto" playsinline></video>
+
+  <div class="controls card">
+    <div class="group">
+      <button id="play">播放 / 暂停</button>
+      <button id="prev">−1 帧</button>
+      <button id="next">+1 帧</button>
+      <button id="prev10">−10 帧</button>
+      <button id="next10">+10 帧</button>
+    </div>
+    <div class="group" id="rates">
+      <button data-rate="0.1">0.1×</button>
+      <button data-rate="0.25" class="active">0.25×</button>
+      <button data-rate="0.5">0.5×</button>
+      <button data-rate="1">1×</button>
+      <button data-rate="2">2×</button>
+    </div>
+    <div id="status" class="status">等待视频</div>
+  </div>
+
+  <div class="info">
+    <div class="metric instruction"><label>模型文本输入：导航指令</label><strong id="instruction">—</strong></div>
+    <div class="metric"><label>Success</label><strong id="success">—</strong></div>
+    <div class="metric"><label>SPL</label><strong id="spl">—</strong></div>
+    <div class="metric"><label>OS</label><strong id="os">—</strong></div>
+    <div class="metric"><label>NE</label><strong id="ne">—</strong></div>
+    <div class="metric"><label>Steps</label><strong id="steps">—</strong></div>
+  </div>
+
+  <div class="card explain hint">
+    低头观察在原始视频里通常只有一帧：使用 <b>0.1×</b>，或暂停后点击 <b>−1/+1 帧</b>。
+    快捷键：<kbd>Space</kbd> 播放/暂停，<kbd>←</kbd>/<kbd>→</kbd> 逐帧。
+    当前录像没有独立保存“最多 8 张历史图像、384×384 预处理张量、深度、完整 prompt 和模型输出”；这些内容需要对选定 episode 做 debug replay 才能逐项显示。
+  </div>
+</main>
+
+<script>
+  const FPS = 6;
+  const video = document.querySelector('#video');
+  const camera = document.querySelector('#camera');
+  const map = document.querySelector('#map');
+  const cameraCtx = camera.getContext('2d');
+  const mapCtx = map.getContext('2d');
+  const select = document.querySelector('#episode');
+  const search = document.querySelector('#search');
+  const rawLink = document.querySelector('#rawLink');
+  let allRows = [];
+  let visibleRows = [];
+  let currentRate = 0.25;
+  let animationId = null;
+
+  function keyOf(row) {
+    return `${row.scene_id}/${String(row.episode_id).padStart(4, '0')}`;
+  }
+
+  function draw() {
+    if (video.readyState >= 2 && video.videoWidth > 0) {
+      const h = video.videoHeight;
+      const cameraWidth = Math.min(Math.round(h * 4 / 3), video.videoWidth);
+      const mapWidth = video.videoWidth - cameraWidth;
+      camera.width = cameraWidth;
+      camera.height = h;
+      map.width = Math.max(mapWidth, 1);
+      map.height = h;
+      cameraCtx.drawImage(video, 0, 0, cameraWidth, h, 0, 0, cameraWidth, h);
+      mapCtx.drawImage(video, cameraWidth, 0, mapWidth, h, 0, 0, mapWidth, h);
+      const frame = Math.min(Math.floor(video.currentTime * FPS), Math.max(Math.round(video.duration * FPS) - 1, 0));
+      document.querySelector('#status').textContent =
+        `帧 ${frame + 1}/${Math.round(video.duration * FPS)} · ${video.currentTime.toFixed(2)}s/${video.duration.toFixed(2)}s · ${video.playbackRate}×`;
+    }
+  }
+
+  function animate() {
+    draw();
+    animationId = video.paused ? null : requestAnimationFrame(animate);
+  }
+
+  function setRate(rate) {
+    currentRate = rate;
+    video.playbackRate = rate;
+    document.querySelectorAll('#rates button').forEach(button => {
+      button.classList.toggle('active', Number(button.dataset.rate) === rate);
+    });
+    draw();
+  }
+
+  function seekFrames(count) {
+    video.pause();
+    video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + count / FPS));
+  }
+
+  function fillRows(rows, preserveKey = '') {
+    visibleRows = rows;
+    select.innerHTML = '';
+    rows.forEach((row, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = `${keyOf(row)} · SPL ${Number(row.spl).toFixed(3)} · ${row.steps} steps`;
+      select.append(option);
+    });
+    if (!rows.length) {
+      const option = document.createElement('option');
+      option.textContent = '没有匹配的成功 episode';
+      select.append(option);
+      return;
+    }
+    const selected = rows.findIndex(row => keyOf(row) === preserveKey);
+    select.value = String(selected >= 0 ? selected : 0);
+    loadSelected();
+  }
+
+  function loadSelected() {
+    const row = visibleRows[Number(select.value)];
+    if (!row) return;
+    const ep = String(row.episode_id).padStart(4, '0');
+    const src = `vis_0/${encodeURIComponent(row.scene_id)}/${ep}.mp4`;
+    video.pause();
+    video.src = src;
+    video.load();
+    rawLink.href = src;
+    document.querySelector('#instruction').textContent = row.episode_instruction;
+    document.querySelector('#success').textContent = Number(row.success).toFixed(0);
+    document.querySelector('#success').className = row.success ? 'ok' : '';
+    document.querySelector('#spl').textContent = Number(row.spl).toFixed(3);
+    document.querySelector('#os').textContent = Number(row.os).toFixed(0);
+    document.querySelector('#ne').textContent = `${Number(row.ne).toFixed(3)} m`;
+    document.querySelector('#steps').textContent = row.steps;
+  }
+
+  select.addEventListener('change', loadSelected);
+  search.addEventListener('input', () => {
+    const preserve = visibleRows[Number(select.value)] ? keyOf(visibleRows[Number(select.value)]) : '';
+    const query = search.value.trim().toLowerCase();
+    fillRows(allRows.filter(row => keyOf(row).toLowerCase().includes(query)), preserve);
+  });
+  document.querySelector('#play').addEventListener('click', () => video.paused ? video.play() : video.pause());
+  document.querySelector('#prev').addEventListener('click', () => seekFrames(-1));
+  document.querySelector('#next').addEventListener('click', () => seekFrames(1));
+  document.querySelector('#prev10').addEventListener('click', () => seekFrames(-10));
+  document.querySelector('#next10').addEventListener('click', () => seekFrames(10));
+  document.querySelectorAll('#rates button').forEach(button => button.addEventListener('click', () => setRate(Number(button.dataset.rate))));
+  video.addEventListener('loadeddata', () => { setRate(currentRate); draw(); });
+  video.addEventListener('seeked', draw);
+  video.addEventListener('timeupdate', draw);
+  video.addEventListener('play', () => { if (!animationId) animate(); });
+  video.addEventListener('pause', draw);
+  document.addEventListener('keydown', event => {
+    if (event.target.matches('input, select')) return;
+    if (event.code === 'Space') { event.preventDefault(); video.paused ? video.play() : video.pause(); }
+    if (event.code === 'ArrowLeft') { event.preventDefault(); seekFrames(-1); }
+    if (event.code === 'ArrowRight') { event.preventDefault(); seekFrames(1); }
+  });
+
+  fetch('progress.json')
+    .then(response => response.text())
+    .then(text => {
+      allRows = text.trim().split(/\n+/).map(line => JSON.parse(line))
+        .filter(row => Number(row.success) === 1)
+        .sort((a, b) => a.scene_id.localeCompare(b.scene_id) || Number(a.episode_id) - Number(b.episode_id));
+      fillRows(allRows);
+    })
+    .catch(error => {
+      select.innerHTML = `<option>载入失败：${error.message}</option>`;
+    });
+</script>
+</body>
+</html>

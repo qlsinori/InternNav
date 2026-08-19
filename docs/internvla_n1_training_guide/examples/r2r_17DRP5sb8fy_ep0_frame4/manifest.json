@@ -1,0 +1,131 @@
+{
+  "generated_by": "/workspace/flow/work_space/InternNav/scripts/inspect_vln_training_sample.py",
+  "pyarrow_version": "18.1.0",
+  "sources": [
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/raw_data/r2r/train/train.json.gz",
+      "bytes": 2408561,
+      "sha256": "108d6ae183dcb5233d6d5337a599c78a4cb062523f27bd7b18e8b9e3e6cb7895"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/info.json",
+      "bytes": 4647,
+      "sha256": "030419a9f960a4c88885db4d78e1b456089134695abf862c56639680219403fd"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/episodes.jsonl",
+      "bytes": 11973,
+      "sha256": "45e893f27ffbbf7310710e1d59c82f7d484e99894a9dd134144e6a1626d1f443"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/episodes_stats.jsonl",
+      "bytes": 488151,
+      "sha256": "32c112fc289ea818cda10e69e650ff44f6e3316116e0e40e1c27236d2a79fc68"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/meta/tasks.jsonl",
+      "bytes": 10473,
+      "sha256": "13db16cbabd8ebe8e9c0b73b64294f9e2e19041cc0af542a8a1ec36083faa204"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/data/chunk-000/episode_000000.parquet",
+      "bytes": 102560,
+      "sha256": "8eb6e0b1460738d0a5aca6ead2ce21f2755adaa85368b10aeeffbebaf4a8e983"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_0deg/episode_000000_4.png",
+      "bytes": 55287,
+      "sha256": "f87b74c205e50f2c812a8fb7e22709523dbaf1cfa5f42f140b3a42d8c317e90e"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_30deg/episode_000000_4.png",
+      "bytes": 76618,
+      "sha256": "6da62696a9d3a4b45ace6446349bbf5469f5b84c3f7fef96ae57c37b4b31a4c2"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_45deg/episode_000000_4.png",
+      "bytes": 70638,
+      "sha256": "808b91af4d9316f08e53d4848bbc7e3a72ca4750a5f20852d46a2b2b40b9b468"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_15deg/episode_000000_4.png",
+      "bytes": 62249,
+      "sha256": "e2d375cc5b22a7916eb8e2c7ea7108b9d557595ab36f2449561767298f3bbf23"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_30deg/episode_000000_4.png",
+      "bytes": 62196,
+      "sha256": "349d24f448d31a499990ce96b6a0790254becd67e5d1a361b011ae487205a9ab"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_0deg/episode_000000_4.jpg",
+      "bytes": 26834,
+      "sha256": "15ab901c8632447c2ac7964ef5345b62f70c05cd312844794e81ff0a69b7aee7"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_30deg/episode_000000_4.jpg",
+      "bytes": 35265,
+      "sha256": "443861d445158335e0a836ca4810cfb76eb38b956571e26c38db930060bc8000"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_45deg/episode_000000_4.jpg",
+      "bytes": 35831,
+      "sha256": "c48ed115ad8c8437fb7b3ebe90784021f763491733993f094e1476ef2168b4f2"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_15deg/episode_000000_4.jpg",
+      "bytes": 30743,
+      "sha256": "d4e915c24575dc32d594f8955573a8e1d36b0ae52784d90c68dd7cbc4f9e05ea"
+    },
+    {
+      "path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_30deg/episode_000000_4.jpg",
+      "bytes": 33394,
+      "sha256": "83330c104e502919fb74392a8ffbae58c0850070a8ddb5d475d7b51e458e77ec"
+    }
+  ],
+  "outputs": [
+    "README.md",
+    "decision_samples.json",
+    "depth_preview_0_5m.png",
+    "depth_raw_mm.png",
+    "frames.csv",
+    "front_rgb.jpg",
+    "lerobot_episode_000000.json",
+    "lerobot_episode_000000_stats.json",
+    "lerobot_episodes.jsonl",
+    "lerobot_episodes_stats.jsonl",
+    "lerobot_info.json",
+    "lerobot_task_000000.json",
+    "lerobot_tasks.jsonl",
+    "lookdown_goal_overlay.jpg",
+    "lookdown_rgb.jpg",
+    "manifest.json",
+    "media_depth_125cm_0deg_frame000004_preview_0_5m.png",
+    "media_depth_125cm_0deg_frame000004_raw_mm.png",
+    "media_depth_125cm_30deg_frame000004_preview_0_5m.png",
+    "media_depth_125cm_30deg_frame000004_raw_mm.png",
+    "media_depth_125cm_45deg_frame000004_preview_0_5m.png",
+    "media_depth_125cm_45deg_frame000004_raw_mm.png",
+    "media_depth_60cm_15deg_frame000004_preview_0_5m.png",
+    "media_depth_60cm_15deg_frame000004_raw_mm.png",
+    "media_depth_60cm_30deg_frame000004_preview_0_5m.png",
+    "media_depth_60cm_30deg_frame000004_raw_mm.png",
+    "media_rgb_125cm_0deg_frame000004.jpg",
+    "media_rgb_125cm_30deg_frame000004.jpg",
+    "media_rgb_125cm_45deg_frame000004.jpg",
+    "media_rgb_60cm_15deg_frame000004.jpg",
+    "media_rgb_60cm_30deg_frame000004.jpg",
+    "media_streams.json",
+    "overview.jpg",
+    "parquet_episode_000000_all_46x56.jsonl",
+    "parquet_frame_000004.json",
+    "parquet_schema.md",
+    "parquet_schema.txt",
+    "raw_r2r_episode_515.json",
+    "sample_summary.json",
+    "source_data_tree.json",
+    "trajectory_first_anchor.png",
+    "trajectory_gt.csv",
+    "trajectory_gt.json"
+  ]
+}

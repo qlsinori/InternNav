@@ -6,6 +6,9 @@ from transformers import PretrainedConfig, PreTrainedModel
 
 from .nextdit_traj import LuminaNextDiT2DModel
 
+# 训练调用和 Flow Matching 公式见：
+# docs/internvla_n1_training_guide/README.md#8-system-1-的-flow-matching-loss
+
 
 class NextDiTCrossAttnConfig(PretrainedConfig):
     model_type = "nextdit-crossattn"
@@ -84,6 +87,8 @@ class NextDiTCrossAttn(PreTrainedModel):
         )
 
     def forward(self, x, timestep, z_latents, **kwargs):
+        # x: [B*F,32,384] noisy trajectory features；在 DualVLN 的 nextdit_async 中，
+        # z_latents=[B*F,36,768]（32 个 RGB memory token + 4 个 trajectory-query token）。
         model_pred = self.model(
             hidden_states=x,
             timestep=timestep,

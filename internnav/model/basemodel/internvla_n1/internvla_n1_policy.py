@@ -183,6 +183,7 @@ class InternVLAN1Net(PreTrainedModel):
         # 4. Post-process results
         if bool(re.search(r'\d', self.llm_output)):  # Output pixel goal
             coord = [int(c) for c in re.findall(r'\d+', self.llm_output)]
+            # System 2 文本按 `u v = x y` 生成；policy 输出改成内部图像索引顺序 `[v,u] = [row,column]`。
             pixel_goal = [int(coord[1]), int(coord[0])]
             output.output_pixel = np.array(pixel_goal)
 

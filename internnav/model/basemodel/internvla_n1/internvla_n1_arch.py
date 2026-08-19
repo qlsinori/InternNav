@@ -6,6 +6,9 @@ import torch.nn as nn
 LatentEmbSize = 768
 MODEL_PATH_TO = "checkpoints"
 
+# 模块和张量 shape 的中文导读：
+# docs/internvla_n1_training_guide/README.md#8-system-1-的-flow-matching-loss
+
 
 def build_navdp(navdp_cfg, memory_size):
     from .navdp import NavDP_Policy_DPT_CriticSum_DAT
@@ -100,6 +103,7 @@ class QFormer(nn.Module):
         self.num_query = num_query
         self.hidden_size = hidden_size
 
+        # 这里的 32 个视觉 memory queries 与 Qwen 末尾的 4 个 trajectory queries 是两组不同参数。
         self.query_tokens = nn.Parameter(torch.randn(num_query, hidden_size))
         self.query_pos = nn.Parameter(torch.randn(num_query, hidden_size))
 
@@ -122,6 +126,8 @@ class InternVLAN1MetaModel:
     def __init__(self, config):
         super(InternVLAN1MetaModel, self).__init__(config)
         if hasattr(config, "system1"):
+            # Q=4 个 query 汇总“指令 + 历史图像 + waypoint 文本”的高层计划；
+            # 它们通过轨迹 loss 间接学习，没有独立 token label。
             self.latent_queries = nn.Parameter(torch.randn(1, config.n_query, config.hidden_size))
 
             if 'nextdit' in config.system1:
@@ -134,6 +140,8 @@ class InternVLAN1MetaModel:
                 )
 
                 if 'async' in config.system1:
+                    # 名称来自 DepthAnything，但这里只复用其 DINOv2 RGB backbone；
+                    # nextdit_async 的训练条件不读取深度图。
                     self.rgb_model = build_depthanythingv2(config)
                     self.memory_encoder = MemoryEncoder()
                     self.rgb_resampler = QFormer()

@@ -1,0 +1,193 @@
+{
+  "scene": "17DRP5sb8fy",
+  "episode_index": 0,
+  "sample_frame": 4,
+  "stream_count": 10,
+  "streams": [
+    {
+      "stream": "observation.images.depth.125cm_0deg",
+      "kind": "depth",
+      "camera_setting": "125cm_0deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "I;16",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_0deg/episode_000000_4.png",
+      "local_sample": "media_depth_125cm_0deg_frame000004_raw_mm.png",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+      "units": "millimeters in raw PNG",
+      "nonzero_range_mm": [
+        1175,
+        5019
+      ],
+      "local_preview": "media_depth_125cm_0deg_frame000004_preview_0_5m.png",
+      "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+    },
+    {
+      "stream": "observation.images.depth.125cm_30deg",
+      "kind": "depth",
+      "camera_setting": "125cm_30deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "I;16",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_30deg/episode_000000_4.png",
+      "local_sample": "media_depth_125cm_30deg_frame000004_raw_mm.png",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+      "units": "millimeters in raw PNG",
+      "nonzero_range_mm": [
+        895,
+        5001
+      ],
+      "local_preview": "media_depth_125cm_30deg_frame000004_preview_0_5m.png",
+      "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+    },
+    {
+      "stream": "observation.images.depth.125cm_45deg",
+      "kind": "depth",
+      "camera_setting": "125cm_45deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "I;16",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.125cm_45deg/episode_000000_4.png",
+      "local_sample": "media_depth_125cm_45deg_frame000004_raw_mm.png",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+      "units": "millimeters in raw PNG",
+      "nonzero_range_mm": [
+        812,
+        4483
+      ],
+      "local_preview": "media_depth_125cm_45deg_frame000004_preview_0_5m.png",
+      "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+    },
+    {
+      "stream": "observation.images.depth.60cm_15deg",
+      "kind": "depth",
+      "camera_setting": "60cm_15deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "I;16",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_15deg/episode_000000_4.png",
+      "local_sample": "media_depth_60cm_15deg_frame000004_raw_mm.png",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+      "units": "millimeters in raw PNG",
+      "nonzero_range_mm": [
+        397,
+        6234
+      ],
+      "local_preview": "media_depth_60cm_15deg_frame000004_preview_0_5m.png",
+      "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+    },
+    {
+      "stream": "observation.images.depth.60cm_30deg",
+      "kind": "depth",
+      "camera_setting": "60cm_30deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "I;16",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.depth.60cm_30deg/episode_000000_4.png",
+      "local_sample": "media_depth_60cm_30deg_frame000004_raw_mm.png",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码",
+      "units": "millimeters in raw PNG",
+      "nonzero_range_mm": [
+        385,
+        5778
+      ],
+      "local_preview": "media_depth_60cm_30deg_frame000004_preview_0_5m.png",
+      "local_preview_relation": "由原始 16-bit 毫米 depth 派生的 0～5m 灰度预览；不是训练输入"
+    },
+    {
+      "stream": "observation.images.rgb.125cm_0deg",
+      "kind": "rgb",
+      "camera_setting": "125cm_0deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "RGB",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_0deg/episode_000000_4.jpg",
+      "local_sample": "media_rgb_125cm_0deg_frame000004.jpg",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+    },
+    {
+      "stream": "observation.images.rgb.125cm_30deg",
+      "kind": "rgb",
+      "camera_setting": "125cm_30deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "RGB",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_30deg/episode_000000_4.jpg",
+      "local_sample": "media_rgb_125cm_30deg_frame000004.jpg",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+    },
+    {
+      "stream": "observation.images.rgb.125cm_45deg",
+      "kind": "rgb",
+      "camera_setting": "125cm_45deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "RGB",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.125cm_45deg/episode_000000_4.jpg",
+      "local_sample": "media_rgb_125cm_45deg_frame000004.jpg",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+    },
+    {
+      "stream": "observation.images.rgb.60cm_15deg",
+      "kind": "rgb",
+      "camera_setting": "60cm_15deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "RGB",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_15deg/episode_000000_4.jpg",
+      "local_sample": "media_rgb_60cm_15deg_frame000004.jpg",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+    },
+    {
+      "stream": "observation.images.rgb.60cm_30deg",
+      "kind": "rgb",
+      "camera_setting": "60cm_30deg",
+      "episode_frame_count": 46,
+      "sample_frame": 4,
+      "shape_wh": [
+        640,
+        480
+      ],
+      "pillow_mode": "RGB",
+      "source_path": "/mnt/cpfs/zbl-cpfs-new/open_data/InternData-N1/vln_ce/traj_data/r2r/17DRP5sb8fy/videos/chunk-000/observation.images.rgb.60cm_30deg/episode_000000_4.jpg",
+      "local_sample": "media_rgb_60cm_30deg_frame000004.jpg",
+      "local_sample_relation": "local_sample 是 source_path 的逐字节副本，未做缩放或转码"
+    }
+  ]
+}

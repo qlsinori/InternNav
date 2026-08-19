@@ -1,0 +1,243 @@
+{
+  "action": 1,
+  "pose.125cm_0deg": [
+    [
+      -0.707099974155426,
+      0.0,
+      0.707099974155426,
+      0.17679999768733978
+    ],
+    [
+      -0.707099974155426,
+      0.0,
+      -0.707099974155426,
+      -0.17679999768733978
+    ],
+    [
+      0.0,
+      -1.0,
+      0.0,
+      1.25
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "goal.125cm_0deg": [
+    -1,
+    -1
+  ],
+  "relative_goal_frame_id.125cm_0deg": -1,
+  "pose.125cm_30deg": [
+    [
+      -0.707099974155426,
+      -0.35359999537467957,
+      0.6123999953269958,
+      0.17679999768733978
+    ],
+    [
+      -0.707099974155426,
+      0.35359999537467957,
+      -0.6123999953269958,
+      -0.17679999768733978
+    ],
+    [
+      0.0,
+      -0.8659999966621399,
+      -0.5,
+      1.25
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "goal.125cm_30deg": [
+    258,
+    332
+  ],
+  "relative_goal_frame_id.125cm_30deg": 11,
+  "pose.125cm_45deg": [
+    [
+      -0.707099974155426,
+      -0.5,
+      0.5,
+      0.17679999768733978
+    ],
+    [
+      -0.707099974155426,
+      0.5,
+      -0.5,
+      -0.17679999768733978
+    ],
+    [
+      0.0,
+      -0.707099974155426,
+      -0.707099974155426,
+      1.25
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "goal.125cm_45deg": [
+    218,
+    211
+  ],
+  "relative_goal_frame_id.125cm_45deg": 12,
+  "pose.60cm_15deg": [
+    [
+      -0.707099974155426,
+      -0.18299999833106995,
+      0.6830000281333923,
+      0.17679999768733978
+    ],
+    [
+      -0.707099974155426,
+      0.18299999833106995,
+      -0.6830000281333923,
+      -0.17679999768733978
+    ],
+    [
+      0.0,
+      -0.9659000039100647,
+      -0.2587999999523163,
+      0.6000000238418579
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "goal.60cm_15deg": [
+    115,
+    222
+  ],
+  "relative_goal_frame_id.60cm_15deg": 22,
+  "pose.60cm_30deg": [
+    [
+      -0.707099974155426,
+      -0.35359999537467957,
+      0.6123999953269958,
+      0.17679999768733978
+    ],
+    [
+      -0.707099974155426,
+      0.35359999537467957,
+      -0.6123999953269958,
+      -0.17679999768733978
+    ],
+    [
+      0.0,
+      -0.8659999966621399,
+      -0.5,
+      0.6000000238418579
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "goal.60cm_30deg": [
+    298,
+    212
+  ],
+  "relative_goal_frame_id.60cm_30deg": 10,
+  "timestamp": 0.13333334028720856,
+  "frame_index": 4,
+  "episode_index": 0,
+  "index": 4,
+  "task_index": 0,
+  "local_point_goal.60cm_30deg": [
+    1.19083,
+    0.060246
+  ],
+  "local_point_goal_prompt.60cm_30deg": "At current BEV=(0,0) heading=(1,0), with target position=(1.19083, 0.060246). Where should you go next to the target position and stay on track? Please give the target image point and next action command. Next action is limited to ['STOP', '↑', '←', '→', '↓']",
+  "local_point_goal.125cm_45deg": [
+    1.315926,
+    0.276764
+  ],
+  "local_point_goal_prompt.125cm_45deg": "Current position BEV=(0,0), heading=(1,0), target position=(1.315926, 0.276764). Where should you go next to the target position and stay on track? Please indicate the image point for the target and the following action. Available actions are ['STOP', '↑', '←', '→', '↓']",
+  "local_point_goal.125cm_30deg": [
+    1.19083,
+    0.060246
+  ],
+  "local_point_goal_prompt.125cm_30deg": "From BEV position (0,0) and heading vector (1,0), target position=(1.19083, 0.060246). Where should you go next to the target position and stay on track? Please return the image coordinates of the target and the next action. The action should be ['STOP', '↑', '←', '→', '↓']",
+  "local_point_goal.60cm_15deg": [
+    2.359243,
+    1.167869
+  ],
+  "local_point_goal_prompt.60cm_15deg": "From BEV position (0,0) and heading vector (1,0), target position=(2.359243, 1.167869). Where should you go next to the target position and stay on track? Please return the image coordinates of the target and the next action. The action should be ['STOP', '↑', '←', '→', '↓']",
+  "local_point_goal.125cm_0deg": [
+    3.500212,
+    0.728044
+  ],
+  "local_point_goal_prompt.125cm_0deg": "Current position BEV=(0,0), heading=(1,0), target position=(3.500212, 0.728044). Where should you go next to the target position and stay on track? Please give the target point location in the image and next action. Action is one of ['STOP', '↑', '←', '→', '↓']",
+  "final_point_goal.60cm_30deg": [
+    5.957189,
+    0.404539
+  ],
+  "final_point_goal.125cm_45deg": [
+    5.957587,
+    0.404539
+  ],
+  "final_point_goal.125cm_30deg": [
+    5.957189,
+    0.404539
+  ],
+  "final_point_goal.60cm_15deg": [
+    5.957718,
+    0.404539
+  ],
+  "final_point_goal.125cm_0deg": [
+    5.957644,
+    0.404539
+  ],
+  "goal_prompt.60cm_30deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.19083, 0.060246), final goal: (5.957189, 0.404539). Step 1: Choose the next action(s) from ['STOP', '↑', '←', '→', '↓'] to move toward the local target. Output STOP if you have reached the final goal. Step 2: If you chose '↓' in Step 1, locate the local target in the next image and output its pixel coordinates as u v.",
+  "goal_prompt.125cm_45deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.315926, 0.276764), final goal: (5.957587, 0.404539). Step 1: Choose the next action(s) from ['STOP', '↑', '←', '→', '↓'] to move toward the local target. Output STOP if you have reached the final goal. Step 2: If you chose '↓' in Step 1, locate the local target in the next image and output its pixel coordinates as u v.",
+  "goal_prompt.125cm_30deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.19083, 0.060246), final goal: (5.957189, 0.404539). Step 1: Choose the next action(s) from ['STOP', '↑', '←', '→', '↓'] to move toward the local target. Output STOP if you have reached the final goal. Step 2: If you chose '↓' in Step 1, locate the local target in the next image and output its pixel coordinates as u v.",
+  "goal_prompt.60cm_15deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (2.359243, 1.167869), final goal: (5.957718, 0.404539). Step 1: Choose the next action(s) from ['STOP', '↑', '←', '→', '↓'] to move toward the local target. Output STOP if you have reached the final goal. Step 2: If you chose '↓' in Step 1, locate the local target in the next image and output its pixel coordinates as u v.",
+  "goal_prompt.125cm_0deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (3.500212, 0.728044), final goal: (5.957644, 0.404539). Step 1: Choose the next action(s) from ['STOP', '↑', '←', '→', '↓'] to move toward the local target. Output STOP if you have reached the final goal. Step 2: If you chose '↓' in Step 1, locate the local target in the next image and output its pixel coordinates as u v.",
+  "action_pixel_goal.60cm_30deg": [
+    298,
+    212
+  ],
+  "action_pixel_goal_type.60cm_30deg": "forward",
+  "goal_prompt_pixel.60cm_30deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.19083, 0.060246), final goal: (5.957189, 0.404539). ",
+  "action_pixel_goal.125cm_45deg": [
+    218,
+    211
+  ],
+  "action_pixel_goal_type.125cm_45deg": "forward",
+  "goal_prompt_pixel.125cm_45deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.315926, 0.276764), final goal: (5.957587, 0.404539). ",
+  "action_pixel_goal.125cm_30deg": [
+    258,
+    332
+  ],
+  "action_pixel_goal_type.125cm_30deg": "forward",
+  "goal_prompt_pixel.125cm_30deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (1.19083, 0.060246), final goal: (5.957189, 0.404539). ",
+  "action_pixel_goal.60cm_15deg": [
+    115,
+    222
+  ],
+  "action_pixel_goal_type.60cm_15deg": "forward",
+  "goal_prompt_pixel.60cm_15deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (2.359243, 1.167869), final goal: (5.957718, 0.404539). ",
+  "action_pixel_goal.125cm_0deg": [
+    -1,
+    -1
+  ],
+  "action_pixel_goal_type.125cm_0deg": "invalid",
+  "goal_prompt_pixel.125cm_0deg": "Your current pose: BEV=(0,0), heading=(1,0). Local target: (3.500212, 0.728044), final goal: (5.957644, 0.404539). "
+}

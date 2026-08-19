@@ -1,0 +1,85 @@
+{
+  "source_relationship": {
+    "raw_match_rule": "same scene plus unique exact instruction; no explicit ID map is stored in LeRobot meta",
+    "raw_r2r_array_index": 514,
+    "raw_episode_id": 515,
+    "raw_trajectory_id": 338,
+    "raw_episodes_in_scene": 75,
+    "lerobot_episode_index": 0,
+    "lerobot_length": 46
+  },
+  "selected_decision": {
+    "frame": 4,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 3,
+    "next_action_text": "→",
+    "goal_uv": [
+      258,
+      332
+    ],
+    "relative_goal_frame_id": 11,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "258 332"
+    ],
+    "pose_slice": [
+      4,
+      16
+    ],
+    "history_frames": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "current_front_frame": 4,
+    "lookdown_frame": 4,
+    "coordinate_convention": "Parquet/model text use u v = x y; policy swaps to internal row-column later",
+    "trajectory_anchor_frames": [
+      4,
+      6,
+      8,
+      10,
+      12,
+      14
+    ],
+    "trajectory_target_shape": [
+      6,
+      32,
+      3
+    ],
+    "first_anchor_sum_dxdy_div4": [
+      1.1908297573519622,
+      0.060246043869053835
+    ],
+    "parquet_local_point_goal": [
+      1.19083,
+      0.060246
+    ]
+  },
+  "episode_camera_config_sample_counts": {
+    "scope": "this one LeRobot episode and this one camera configuration only",
+    "camera_config": "front=125cm_0deg, lookdown=125cm_30deg",
+    "pixel_goal": 8,
+    "turn": 1,
+    "discarded": 3,
+    "stop": 1,
+    "stage_a_items_after_stop_x5": 14,
+    "stage_b_pixel_goal_items": 8
+  },
+  "loss_contract": {
+    "stage_a": "assistant tokens '↓' and 'u v' use shifted causal cross entropy; images/instruction are masked",
+    "stage_b_x0_shape": [
+      6,
+      32,
+      3
+    ],
+    "stage_b_text_cross_entropy": false,
+    "flow_input": "x_sigma = (1-sigma)*x0 + sigma*epsilon",
+    "flow_target": "epsilon - x0",
+    "loss": "sum(mask * (v_pred - (epsilon - x0))^2) / (valid_anchor_count * 32 * 3)",
+    "mask_scope": "only collator-added fake anchors are masked; all 32x3 values, including zero tails, participate"
+  }
+}

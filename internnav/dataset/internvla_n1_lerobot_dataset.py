@@ -11,14 +11,28 @@ from typing import Dict, List, Sequence, Tuple
 import numpy as np
 import torch
 import transformers
-from decord import VideoReader
 from PIL import Image
 from torch.utils.data import Dataset
-from torchcodec.decoders import VideoDecoder
 from transformers.image_utils import to_numpy_array
+
+# VLN LeRobot samples are individual JPG/PNG files and do not need a video
+# decoder.  Keep these optional so System 2 training is not blocked by unused
+# MP4 dependencies; the generic video datasets import them lazily when needed.
+try:
+    from decord import VideoReader
+except ImportError:
+    VideoReader = None
+
+try:
+    from torchcodec.decoders import VideoDecoder
+except (ImportError, RuntimeError):
+    VideoDecoder = None
 
 from .rope2d import get_rope_index_2, get_rope_index_25
 from .vlln_lerobot_dataset import VLLNDataset
+
+# 中文逐字段导读：docs/internvla_n1_training_guide/README.md
+# 可运行的真实样本：docs/internvla_n1_training_guide/REAL_DATA_WALKTHROUGH.md
 
 # Define placeholders for dataset paths
 CAMBRIAN_737K = {
@@ -47,6 +61,8 @@ VIDEOCHATGPT = {
 }
 
 
+# 这些 data_path 是训练轨迹（Parquet + 逐帧 RGB/depth）的相对根目录，
+# 不是 data/vln_ce/raw_data 下供 Habitat evaluator 读取的 episode JSON。
 R2R_125CM_0_30 = {
     "data_path": "traj_data/r2r",
     "height": 125,
@@ -170,10 +186,10 @@ def data_list(dataset_names):
     return config_list
 
 
-IGNORE_INDEX = -100
+IGNORE_INDEX = -100  # PyTorch CrossEntropyLoss 默认忽略的 label；用于屏蔽 system/user/image token。
 IMAGE_TOKEN_INDEX = 151655
 VIDEO_TOKEN_INDEX = 151656
-TRAJ_TOKEN_INDEX = 151667
+TRAJ_TOKEN_INDEX = 151667  # 占位 ID；forward 时会被可学习 trajectory query embedding 替换。
 DEFAULT_IMAGE_TOKEN = "<image>"
 DEFAULT_VIDEO_TOKEN = "<video>"
 DEFAULT_TRAJ_TOKEN = "<traj>"
@@ -258,6 +274,7 @@ def preprocess_qwen_2_visual(
             conv = [{"role": role, "content": content}]
             encode_id = tokenizer.apply_chat_template(conv)
             input_id += encode_id
+            # SFT 只监督 assistant 真正回答的 token。指令、历史图像和对话模板仅作为条件。
             if role in ["user", "system"]:
                 target += [IGNORE_INDEX] * len(encode_id)
             else:
@@ -388,6 +405,8 @@ class LazySupervisedDataset(Dataset):
             print(f"torchcodec attempt failed: {e}")
 
     def video_decord(self, video_file):
+        if VideoReader is None:
+            raise ImportError("decord is required only when a generic training sample contains an MP4 video")
         if not os.path.exists(video_file):
             print(f"File not exist: {video_file}")
         vr = VideoReader(video_file, num_threads=4)
@@ -407,6 +426,8 @@ class LazySupervisedDataset(Dataset):
         return self.process_video_frames(video, frame_idx, video_length)
 
     def video_torchcodec(self, video_file):
+        if VideoDecoder is None:
+            raise ImportError("torchcodec is required only when falling back to MP4 video decoding")
         device = "cpu"  # or e.g. "cuda"
         decoder = VideoDecoder(video_file, device=device)
         total_frames = decoder.metadata.num_frames
@@ -749,7 +770,13 @@ def clip_or_pad(arr, fixed_len):
         return np.concatenate([arr, pad], axis=0)
 
 
-def get_annotations_from_lerobot_data(data_path, setting):
+def get_annotations_from_lerobot_data(data_path, setting, scene_ids=None, include_poses=True):
+    """Materialize scene-level LeRobot episodes into frame-level training records.
+
+    The four fields used downstream are discrete action, 4x4 camera pose, pixel
+    goal (u, v), and the relative future-frame id used as the local goal horizon.
+    See the linked guide for a concrete on-disk example.
+    """
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     import pyarrow.parquet as pq
@@ -758,7 +785,17 @@ def get_annotations_from_lerobot_data(data_path, setting):
         "axis_align_matrix": [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
         "episodes": [],
     }
-    scene_ids = [d for d in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, d))]
+    available_scene_ids = sorted(
+        d for d in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, d))
+    )
+    if scene_ids:
+        requested_scene_ids = set(scene_ids)
+        missing_scene_ids = sorted(requested_scene_ids.difference(available_scene_ids))
+        if missing_scene_ids:
+            raise ValueError(
+                f"Requested VLN scenes are missing from {data_path}: {missing_scene_ids}"
+            )
+        available_scene_ids = [scene_id for scene_id in available_scene_ids if scene_id in requested_scene_ids]
 
     def process_scene(scene_id):
         scene_path = os.path.join(data_path, scene_id)
@@ -773,22 +810,28 @@ def get_annotations_from_lerobot_data(data_path, setting):
                 scene_path, "data", f"chunk-{ep_id // 1000:03d}", f"episode_{ep_id:06d}.parquet"
             )
 
-            table = pq.read_table(parquet_path)
-            df = table.to_pandas()
-
-            ep_actions = df["action"].tolist()
-
             pose_key = f"pose.{setting}"
             goal_key = f"goal.{setting}"
             relative_goal_frame_id_key = f"relative_goal_frame_id.{setting}"
+            required_columns = ["action", goal_key, relative_goal_frame_id_key]
+            if include_poses:
+                required_columns.append(pose_key)
+            parquet_file = pq.ParquetFile(parquet_path)
+            missing_columns = [name for name in required_columns if name not in parquet_file.schema_arrow.names]
+            if missing_columns:
+                raise KeyError(
+                    f"Episode {ep_id} in scene {scene_id} lacks {missing_columns} for setting {setting}"
+                )
 
-            if pose_key in df.columns and goal_key in df.columns and relative_goal_frame_id_key in df.columns:
-                ep_poses = df[pose_key].apply(lambda x: x.tolist()).tolist()
-                ep_pixel_goals = [
-                    [df[relative_goal_frame_id_key][idx].tolist(), df[goal_key][idx].tolist()] for idx in range(len(df))
-                ]
-            else:
-                print(f"Warning: Missing data for setting {setting} in episode {ep_id}, filling with defaults.")
+            # System 2 needs action/goal/horizon.  System 1 additionally needs
+            # pose. Reading only those columns avoids all enrichment fields and
+            # removes an otherwise unused pandas dependency.
+            rows = parquet_file.read(columns=required_columns).to_pylist()
+            ep_actions = [row["action"] for row in rows]
+            ep_poses = [row[pose_key] for row in rows] if include_poses else None
+            ep_pixel_goals = [
+                [row[relative_goal_frame_id_key], row[goal_key]] for row in rows
+            ]
 
             assert len(ep_actions) == ep_len, f"Action length mismatch in episode {ep_id}"
 
@@ -806,15 +849,24 @@ def get_annotations_from_lerobot_data(data_path, setting):
 
         return scene_annotations
 
+    scene_results = {}
+    errors = []
     with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = {executor.submit(process_scene, scene_id): scene_id for scene_id in scene_ids}
+        futures = {executor.submit(process_scene, scene_id): scene_id for scene_id in available_scene_ids}
         for future in as_completed(futures):
             scene_id = futures[future]
             try:
-                scene_annotations = future.result()
-                annotations["episodes"].extend(scene_annotations)
+                scene_results[scene_id] = future.result()
             except Exception as e:
-                print(f"Error processing scene {scene_id}: {e}")
+                errors.append((scene_id, e))
+
+    if errors:
+        scene_id, error = errors[0]
+        raise RuntimeError(
+            f"Failed to load {len(errors)} VLN scene(s); first error in {scene_id}: {error}"
+        ) from error
+    for scene_id in available_scene_ids:
+        annotations["episodes"].extend(scene_results[scene_id])
 
     return annotations
 
@@ -837,6 +889,10 @@ class NavPixelGoalDataset(Dataset):
         self.predict_step_num = data_args.predict_step_num
         self.pixel_goal_only = data_args.pixel_goal_only
         self.num_future_steps = data_args.num_future_steps
+        scene_ids = None
+        vln_scene_ids = getattr(data_args, "vln_scene_ids", None)
+        if vln_scene_ids:
+            scene_ids = [scene_id.strip() for scene_id in vln_scene_ids.split(",") if scene_id.strip()]
 
         self.list_data_dict = []
 
@@ -847,9 +903,24 @@ class NavPixelGoalDataset(Dataset):
             pitch_2 = data.get("pitch_2", None)
 
             data_path = data['data_path']
+            vln_data_root = getattr(data_args, "vln_data_root", None)
+            if vln_data_root:
+                data_path = os.path.join(vln_data_root, os.path.basename(data_path))
+            if not os.path.isdir(data_path):
+                raise FileNotFoundError(
+                    f"VLN trajectory directory not found: {data_path}. "
+                    "Pass --vln_data_root pointing to the parent of r2r/rxr/scalevln."
+                )
             setting = f'{height}cm_{pitch_2}deg'
-            annotations = get_annotations_from_lerobot_data(data_path, setting)
+            annotations = get_annotations_from_lerobot_data(
+                data_path,
+                setting,
+                scene_ids=scene_ids,
+                include_poses=self.pixel_goal_only,
+            )
 
+            # 一个轨迹 episode 会被切成“当前决策时刻”的训练样本：
+            # pixel_goal_list -> 文本坐标 + 连续轨迹；turn_list -> 箭头；stop_list -> STOP。
             pixel_goal_list = []
             turn_list = []
             stop_list = []
@@ -858,6 +929,7 @@ class NavPixelGoalDataset(Dataset):
                 ep_id = item['id']
                 instruction = item['instructions']
                 video = item['video']
+                # Parquet action 对应到达当前帧的动作；左移一位后，当前观察监督“下一动作”。
                 actions = item['actions'][1:] + [0]
                 pixel_goals = item['pixel_goals']
                 poses = item[f'poses_{height}cm_{pitch_2}deg']
@@ -873,6 +945,7 @@ class NavPixelGoalDataset(Dataset):
                     start_frame_id = n * self.sample_step
                     action_flag = actions[start_frame_id]
                     pixel_goal = pixel_goals[start_frame_id]
+                    # relative_goal_frame_id == -1 表示没有可用的图像 waypoint，退化为离散转向监督。
                     if pixel_goal[0] == -1:
                         if action_flag == 1:
                             continue
@@ -902,7 +975,13 @@ class NavPixelGoalDataset(Dataset):
                         if goal_len < 3:
                             continue
                         action = pixel_goal[1]
-                        pose = poses[start_frame_id : start_frame_id + goal_len + 1]
+                        # System 2 needs only a non-None marker to select the
+                        # two-round ↓/u-v conversation. System 1 needs poses.
+                        pose = (
+                            poses[start_frame_id : start_frame_id + goal_len + 1]
+                            if self.pixel_goal_only
+                            else True
+                        )
                         pixel_goal_list.append(
                             (
                                 ep_id,
@@ -935,6 +1014,8 @@ class NavPixelGoalDataset(Dataset):
 
             list_data_dict = pixel_goal_list
             rank0_print(len(turn_list), len(pixel_goal_list), len(stop_list))
+            # System 2 阶段保留三类文本输出，并把 STOP 过采样 5 倍；
+            # Dual 阶段 pixel_goal_only=True，只保留能提供轨迹 GT 的第一类。
             if not self.pixel_goal_only:
                 list_data_dict += turn_list
                 list_data_dict += stop_list * 5
@@ -1010,21 +1091,19 @@ class NavPixelGoalDataset(Dataset):
         traj_images = []
         traj_depths = []  # optional
 
-        for id in range(0, end_frame_id):
+        # Stage A only needs sampled front history/current frames and, for a
+        # waypoint target, the current look-down RGB.  Stage B additionally
+        # needs all future look-down RGB/depth frames up to the local goal.
+        if self.pixel_goal_only:
+            frame_ids_to_load = range(0, end_frame_id)
+        else:
+            frame_ids_to_load = sorted(set(history_id + [start_frame_id]))
+
+        for id in frame_ids_to_load:
             image_file = os.path.join(
                 video, f"observation.images.rgb.{height}cm_{pitch_1}deg", f"episode_{ep_id:06d}_{id}.jpg"
             )
             image = Image.open(image_file).convert('RGB')
-            lookdown_image = Image.open(image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg')).convert('RGB')
-
-            depth_image = Image.open(
-                image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg').replace('rgb', 'depth').replace('.jpg', '.png')
-            )
-
-            depth_image, resize_shape = self.preprocess_depth_image_v2(
-                depth_image, do_depth_scale=True, depth_scale=1000, target_height=224, target_width=224
-            )
-            depth_image = torch.as_tensor(np.ascontiguousarray(depth_image)).float()  # [H, W]
             if id in history_id or id == start_frame_id:
                 if self.data_args.transform_train is not None:
                     image = self.data_args.transform_train(image)
@@ -1032,12 +1111,45 @@ class NavPixelGoalDataset(Dataset):
                 images.append(image)
                 grid_thws.append(grid_thw)
                 if id == start_frame_id and pose is not None:
+                    lookdown_image = Image.open(
+                        image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg')
+                    ).convert('RGB')
                     image, grid_thw = self.process_image_unified(lookdown_image)
                     images.append(image)
                     grid_thws.append(grid_thw)
-                    traj_images.append(lookdown_image)
-                    traj_depths.append(depth_image)
-            elif id > start_frame_id:
+                    if self.pixel_goal_only:
+                        depth_image = Image.open(
+                            image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg')
+                            .replace('rgb', 'depth')
+                            .replace('.jpg', '.png')
+                        )
+                        depth_image, _ = self.preprocess_depth_image_v2(
+                            depth_image,
+                            do_depth_scale=True,
+                            depth_scale=1000,
+                            target_height=224,
+                            target_width=224,
+                        )
+                        depth_image = torch.as_tensor(np.ascontiguousarray(depth_image)).float()
+                        traj_images.append(lookdown_image)
+                        traj_depths.append(depth_image)
+            elif self.pixel_goal_only and id > start_frame_id:
+                lookdown_image = Image.open(
+                    image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg')
+                ).convert('RGB')
+                depth_image = Image.open(
+                    image_file.replace(f'_{pitch_1}deg', f'_{pitch_2}deg')
+                    .replace('rgb', 'depth')
+                    .replace('.jpg', '.png')
+                )
+                depth_image, _ = self.preprocess_depth_image_v2(
+                    depth_image,
+                    do_depth_scale=True,
+                    depth_scale=1000,
+                    target_height=224,
+                    target_width=224,
+                )
+                depth_image = torch.as_tensor(np.ascontiguousarray(depth_image)).float()
                 traj_images.append(lookdown_image)
                 traj_depths.append(depth_image)
 
@@ -1066,6 +1178,8 @@ class NavPixelGoalDataset(Dataset):
             ]
             chat_sources[0][0]['value'] = chat_sources[0][0]['value'].replace('<instruction>', instruction)
 
+        # 三种 System 2 target：
+        # 1) `↓` -> 新的朝下图 -> 文本坐标 `u v`（横向 x、纵向 y）；2) STOP；3) 一串离散箭头。
         if pose is not None:
             chat_sources[0].extend(
                 [
@@ -1107,6 +1221,8 @@ class NavPixelGoalDataset(Dataset):
         data_dict["pixel_values"] = torch.cat(images, dim=0)
         data_dict["image_grid_thw"] = torch.cat([thw.unsqueeze(0) for thw in grid_thws], dim=0)
 
+        # Dual 阶段才构造 System 1 监督。每个 anchor 都得到固定 32 步的
+        # (dx, dy, delta_yaw)，traj_images/depths 只沿 anchor 维度变长。
         if self.pixel_goal_only:
             goal_len = end_frame_id - start_frame_id - 1
             interval = 2
@@ -1148,7 +1264,10 @@ def pad_and_cat(tensor_list):
 
 @dataclass
 class DataCollatorForSupervisedDataset(object):
-    """Collate examples for supervised fine-tuning."""
+    """Collate examples for supervised fine-tuning.
+
+    Shape diagram: docs/internvla_n1_training_guide/DATA_STRUCTURE.md
+    """
 
     tokenizer: transformers.PreTrainedTokenizer
 
@@ -1167,6 +1286,8 @@ class DataCollatorForSupervisedDataset(object):
         multi_labels = [None] * batch_size
         t_s_pos = [0] * batch_size
 
+        # 4 个 token 只负责占位。模型 forward 会把它们替换成 4 个可学习 query，
+        # 再取对应 hidden states 作为 System 1 的条件；它们不是 4 个轨迹点。
         traj_token_template = torch.full(
             (traj_token_length,), TRAJ_TOKEN_INDEX, dtype=input_ids[0].dtype, device=input_ids[0].device
         )
@@ -1178,6 +1299,8 @@ class DataCollatorForSupervisedDataset(object):
             t_s_pos[i] = len(truncated_input)
 
             multi_input_ids[i] = torch.cat([truncated_input, traj_token_template])
+            # custom Dual forward 不计算 token CE，所以追加到 labels 的这些 ID 只保持序列对齐；
+            # trajectory query 的学习信号来自连续轨迹 MSE。
             multi_labels[i] = torch.cat([truncated_label, traj_token_template.clone()])
 
         return multi_input_ids, multi_labels, t_s_pos
@@ -1189,6 +1312,7 @@ class DataCollatorForSupervisedDataset(object):
         input_ids = [ids.squeeze(0) for ids in input_ids]
         labels = [ids.squeeze(0) for ids in labels]
 
+        # 只有 pixel_goal_only=True 的 Dual batch 才追加 query；System 2 SFT 不走这里。
         if "traj_images" in instances[0]:
             input_ids, labels, t_s_pos = self.process_input_with_traj_tokens(input_ids, labels)
 
@@ -1245,6 +1369,8 @@ class DataCollatorForSupervisedDataset(object):
             traj_depth_batch = []
             traj_pose_batch = []
             # import pdb; pdb.set_trace()
+            # batch 内不同样本的 anchor 数不同：复制最后一帧补齐，并用 video_frame_num
+            # 在模型 loss 中屏蔽这些复制项。32 个未来轨迹 step 本身无需在此补齐。
             for idx in range(len(traj_images)):
                 t_img = traj_images[idx]
                 t_depth = traj_depths[idx]

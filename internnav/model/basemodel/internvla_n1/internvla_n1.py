@@ -15,6 +15,9 @@ from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from .internvla_n1_arch import InternVLAN1MetaForCausalLM, InternVLAN1MetaModel
 
+# 中文训练导读：docs/internvla_n1_training_guide/README.md
+# 本文件的 forward 是 Dual/System 1 阶段；System 2 阶段使用 Transformers 原生 Qwen forward。
+
 TRAJ_TOKEN_INDEX = 151667
 IMAGE_TOKEN_INDEX = 151655
 _RESNET_MEAN = [0.485, 0.456, 0.406]
@@ -163,6 +166,8 @@ class InternVLAN1ForCausalLM(Qwen2_5_VLForConditionalGeneration, InternVLAN1Meta
                 video_embeds = video_embeds.to(inputs_embeds.device, inputs_embeds.dtype)
                 inputs_embeds = inputs_embeds.masked_scatter(video_mask, video_embeds)
 
+            # Collator 追加的是占位 token ID；这里用 4 个可学习 query embedding 覆盖词表 embedding。
+            # query 数 Q=4 与未来轨迹长度 T=32 无关。
             n_traj_tokens = (input_ids == TRAJ_TOKEN_INDEX).sum().item()
             traj_idx = input_ids == TRAJ_TOKEN_INDEX
             latent_queries = self.get_model().latent_queries.repeat(input_ids.shape[0], 1, 1)
@@ -221,10 +226,13 @@ class InternVLAN1ForCausalLM(Qwen2_5_VLForConditionalGeneration, InternVLAN1Meta
 
         loss = None
         if labels is not None:
+            # 与原生 Qwen 不同，这里不做 shift logits / token CE。labels 仅触发训练分支；
+            # DualVLN Stage B 返回的唯一 loss 是下方的轨迹 Flow Matching MSE。
             traj_hidden_states = []
             for b in range(hidden_states.shape[0]):
                 traj_hidden_states.append(hidden_states[b, t_s_pos[b] : t_s_pos[b] + self.config.n_query, :])
 
+            # [B,Q,3584] -> 为每个局部 anchor frame 复制 -> [B*F,Q,3584]。
             traj_hidden_states = torch.stack(traj_hidden_states, dim=0)
             traj_hidden_states = traj_hidden_states.unsqueeze(1).repeat(1, traj_poses.size(1), 1, 1).flatten(0, 1)
             loss_mask = torch.arange(traj_images.size(1), device=self.device).expand(
@@ -233,6 +241,8 @@ class InternVLAN1ForCausalLM(Qwen2_5_VLForConditionalGeneration, InternVLAN1Meta
 
             if 'nextdit' in self.get_system1_type():
                 if 'async' in self.get_system1_type():
+                    # nextdit_async 只从 RGB pair 构造 memory；虽然 batch 带 traj_depths，
+                    # depth 在此分支不会参与 forward/loss（NavDP async 分支才使用 RGB-D）。
                     cur_images = traj_images.flatten(0, 1)
                     pix_goal_images = traj_images[:, 0:1].repeat(1, traj_images.size(1), 1, 1, 1).flatten(0, 1)
                     bsz = cur_images.size(0)
@@ -267,6 +277,7 @@ class InternVLAN1ForCausalLM(Qwen2_5_VLForConditionalGeneration, InternVLAN1Meta
                     timesteps, latents.device, n_dim=relative_poses.shape[-1], dtype=relative_poses.dtype
                 )
 
+                # Flow Matching 直线路径：x_sigma=(1-sigma)*x0+sigma*epsilon。
                 noisy_trajectory = (1 - sigmas) * relative_poses + sigmas * noise
                 action_features = self.get_model().action_encoder(noisy_trajectory)
                 pos_ids = torch.arange(relative_poses.shape[1]).reshape(1, -1).repeat(bsz, 1).to(relative_poses.device)
@@ -279,8 +290,11 @@ class InternVLAN1ForCausalLM(Qwen2_5_VLForConditionalGeneration, InternVLAN1Meta
                     z_latents=latents,
                 )
                 noise_pred = self.get_model().action_decoder(noise_pred)
+                # 变量名 noise_pred 沿用 diffusion 写法，但网络监督目标实际是 velocity
+                # v*=epsilon-x0，而不是普通 DDPM 的纯噪声 epsilon。
                 target = noise - relative_poses
                 loss = F.mse_loss(noise_pred.float(), target.float(), reduction="none")
+                # mask 只排除 collator 为对齐 F 而复制的 anchor；每条轨迹的 32x3 均参与均值。
                 mask = loss_mask.flatten(0, 1)[:, None, None]
                 masked_loss = loss * mask
                 loss = masked_loss.sum() / mask.sum() / (loss.shape[1] * loss.shape[2])

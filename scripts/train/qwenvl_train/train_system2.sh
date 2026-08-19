@@ -1,4 +1,6 @@
 #!/bin/bash
+# 中文训练代码导读（数据、输出与 loss）：
+# docs/internvla_n1_training_guide/README.md#6-阶段-a训练-system-2
 #SBATCH -J qwenvl
 #SBATCH -p gpu_partition
 #SBATCH -N 8
@@ -26,13 +28,16 @@ grad_accum_steps=1
 max_pixels=313600
 min_pixels=3136
 
-# Dataset configuration (replace with public dataset names)
+# Stage A 使用 LeRobot 轨迹数据构造三类监督：像素 waypoint 文本、转向箭头和 STOP。
+# 这里是数据配置名，不是 raw_data 下供 Habitat 评测使用的 episode JSON。
 vln_datasets=r2r_125cm_0_30,r2r_125cm_0_45,r2r_60cm_15_15,r2r_60cm_30_30,rxr_125cm_0_30,rxr_125cm_0_45,rxr_60cm_15_15,rxr_60cm_30_30 #,scalevln_125cm_0_30,scalevln_60cm_30_30
 
 # Output configuration
 run_name=InternVLA-N1-System2
 output_dir=checkpoints/${run_name}
 
+# pixel_goal_only=False 保留 waypoint、turn、STOP 三类样本；system1=none 使本阶段
+# 走 Qwen2.5-VL 原生 next-token CE，而不会构造连续轨迹的 Flow Matching loss。
 srun torchrun --nnodes=$SLURM_NNODES --nproc_per_node=8 \
     --rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \
     internnav/trainer/internvla_n1_trainer.py \

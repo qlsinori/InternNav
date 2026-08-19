@@ -1,0 +1,236 @@
+[
+  {
+    "frame": 0,
+    "raw_action": -1,
+    "raw_action_text": "START/INVALID",
+    "next_action_after_loader_shift": 3,
+    "next_action_text": "→",
+    "goal_uv": [
+      453,
+      205
+    ],
+    "relative_goal_frame_id": 25,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "453 205"
+    ],
+    "pose_slice": [
+      0,
+      26
+    ]
+  },
+  {
+    "frame": 4,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 3,
+    "next_action_text": "→",
+    "goal_uv": [
+      258,
+      332
+    ],
+    "relative_goal_frame_id": 11,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "258 332"
+    ],
+    "pose_slice": [
+      4,
+      16
+    ]
+  },
+  {
+    "frame": 8,
+    "raw_action": 2,
+    "raw_action_text": "←",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      -1,
+      -1
+    ],
+    "relative_goal_frame_id": -1,
+    "target_type": "discarded",
+    "reason": "invalid pixel goal and next action is forward"
+  },
+  {
+    "frame": 12,
+    "raw_action": 2,
+    "raw_action_text": "←",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      251,
+      270
+    ],
+    "relative_goal_frame_id": 13,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "251 270"
+    ],
+    "pose_slice": [
+      12,
+      26
+    ]
+  },
+  {
+    "frame": 16,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      376,
+      357
+    ],
+    "relative_goal_frame_id": 8,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "376 357"
+    ],
+    "pose_slice": [
+      16,
+      25
+    ]
+  },
+  {
+    "frame": 20,
+    "raw_action": 3,
+    "raw_action_text": "→",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      -1,
+      -1
+    ],
+    "relative_goal_frame_id": -1,
+    "target_type": "discarded",
+    "reason": "invalid pixel goal and next action is forward"
+  },
+  {
+    "frame": 24,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 3,
+    "next_action_text": "→",
+    "goal_uv": [
+      -1,
+      -1
+    ],
+    "relative_goal_frame_id": -1,
+    "target_type": "turn",
+    "turn_actions": [
+      3
+    ],
+    "system2_target": "→"
+  },
+  {
+    "frame": 28,
+    "raw_action": 3,
+    "raw_action_text": "→",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      311,
+      180
+    ],
+    "relative_goal_frame_id": 15,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "311 180"
+    ],
+    "pose_slice": [
+      28,
+      44
+    ]
+  },
+  {
+    "frame": 32,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      198,
+      231
+    ],
+    "relative_goal_frame_id": 11,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "198 231"
+    ],
+    "pose_slice": [
+      32,
+      44
+    ]
+  },
+  {
+    "frame": 36,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      265,
+      256
+    ],
+    "relative_goal_frame_id": 8,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "265 256"
+    ],
+    "pose_slice": [
+      36,
+      45
+    ]
+  },
+  {
+    "frame": 40,
+    "raw_action": 2,
+    "raw_action_text": "←",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      318,
+      342
+    ],
+    "relative_goal_frame_id": 4,
+    "target_type": "pixel_goal",
+    "system2_targets": [
+      "↓",
+      "318 342"
+    ],
+    "pose_slice": [
+      40,
+      45
+    ]
+  },
+  {
+    "frame": 44,
+    "raw_action": 1,
+    "raw_action_text": "↑",
+    "next_action_after_loader_shift": 1,
+    "next_action_text": "↑",
+    "goal_uv": [
+      -1,
+      -1
+    ],
+    "relative_goal_frame_id": -1,
+    "target_type": "discarded",
+    "reason": "invalid pixel goal and next action is forward"
+  },
+  {
+    "frame": 45,
+    "target_type": "stop",
+    "system2_target": "STOP",
+    "stage_a_repetitions": 5,
+    "note": "created by the loader; not taken from the final raw action"
+  }
+]

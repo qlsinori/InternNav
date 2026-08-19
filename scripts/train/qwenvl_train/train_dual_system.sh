@@ -1,4 +1,6 @@
 #!/bin/bash
+# 中文训练代码导读（数据、trajectory query 与 Flow Matching loss）：
+# docs/internvla_n1_training_guide/README.md#7-阶段-b训练-dualvln--system-1
 #SBATCH -J qwenvl
 #SBATCH -p gpu_partition
 #SBATCH -N 8
@@ -25,7 +27,8 @@ grad_accum_steps=1
 max_pixels=313600
 min_pixels=3136
 
-# Dataset configuration (replace with public dataset names)
+# `%30` 由 dataset loader 解释成“对这一相机配置随机抽取 30%”，不是角度或 loss 权重。
+# Stage B 只使用有 pixel waypoint 和连续位姿监督的样本。
 vln_datasets=r2r_125cm_0_30%30,r2r_60cm_15_15%30,rxr_125cm_0_30%30,rxr_60cm_15_15%30,scalevln_125cm_0_30%30,scalevln_60cm_30_30%30
 
 # Output configuration
@@ -36,6 +39,10 @@ system1=nextdit_async
 
 system2_ckpt=checkpoints/InternVLA-N1-System2
 
+# 三个 tune 开关为 False 会先冻结 System 2；trainer.set_model() 随后只重新打开
+# latent_queries、NextDiT、轨迹编解码器和 async RGB memory 模块的梯度。
+# pixel_goal_only=True 会让 collator 追加 4 个 trajectory query，并使模型返回轨迹 MSE，
+# 而不是把语言 CE 与轨迹 loss 相加。
 srun torchrun --nnodes=$SLURM_NNODES --nproc_per_node=8 \
     --rdzv_id=$SLURM_JOB_ID --rdzv_backend=c10d --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \
     internnav/trainer/internvla_n1_trainer.py \

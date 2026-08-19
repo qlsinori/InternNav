@@ -14,10 +14,15 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+# 中文训练导读：docs/internvla_n1_training_guide/README.md
+# 本入口同时服务两个阶段：普通 Qwen2.5-VL 类负责 System 2 的 token CE；
+# InternVLAN1ForCausalLM 类负责冻结 System 2 后的 System 1 轨迹 Flow Matching。
+
 import logging
 import os
 import pathlib
 import sys
+import time
 from pathlib import Path
 from typing import Dict
 
@@ -35,6 +40,7 @@ from transformers import (
     Qwen2VLForConditionalGeneration,
     Qwen2VLImageProcessor,
     Trainer,
+    TrainerCallback,
 )
 
 from internnav.dataset.internvla_n1_lerobot_dataset import make_supervised_data_module
@@ -44,6 +50,90 @@ from internnav.trainer.internvla_n1_argument import (
     ModelArguments,
     TrainingArguments,
 )
+
+
+class WallClockStopAndSaveCallback(TrainerCallback):
+    """Stop safely at an optimizer-step boundary after a wall-clock budget.
+
+    All distributed ranks participate in the stop vote.  Setting should_save
+    lets Trainer run its normal DeepSpeed collective checkpoint path before
+    the training loop returns, avoiding partial checkpoints from SIGTERM.
+    """
+
+    def __init__(self, max_train_seconds: int, stop_file: str | None = None):
+        self.max_train_seconds = max_train_seconds
+        self.stop_file = stop_file
+        self.started_at = None
+        self.stop_announced = False
+
+    def on_train_begin(self, args, state, control, **kwargs):
+        self.started_at = time.monotonic()
+        if state.is_world_process_zero:
+            logging.info(
+                "Wall-clock training budget started: %s seconds; stop file: %s",
+                self.max_train_seconds,
+                self.stop_file or "disabled",
+            )
+        return control
+
+    def on_step_end(self, args, state, control, **kwargs):
+        elapsed = time.monotonic() - self.started_at
+        local_stop = elapsed >= self.max_train_seconds
+        if self.stop_file:
+            local_stop = local_stop or os.path.exists(self.stop_file)
+
+        if torch.distributed.is_available() and torch.distributed.is_initialized():
+            backend = torch.distributed.get_backend()
+            device = torch.device("cuda", torch.cuda.current_device()) if backend == "nccl" else torch.device("cpu")
+            stop_vote = torch.tensor(int(local_stop), device=device)
+            torch.distributed.all_reduce(stop_vote, op=torch.distributed.ReduceOp.MAX)
+            local_stop = bool(stop_vote.item())
+
+        if local_stop:
+            control.should_log = True
+            control.should_save = True
+            control.should_training_stop = True
+            if state.is_world_process_zero and not self.stop_announced:
+                logging.info(
+                    "Wall-clock stop requested after %.1f seconds at optimizer step %s; "
+                    "forcing a DeepSpeed checkpoint before normal exit",
+                    elapsed,
+                    state.global_step,
+                )
+                self.stop_announced = True
+        return control
+
+
+class ResumeStateControlCallback(TrainerCallback):
+    """Apply explicitly requested control settings after resume state loads.
+
+    Transformers restores ``save_steps`` from ``trainer_state.json`` after it
+    has computed the values from the current command line.  That is normally
+    useful for an identical restart, but it prevents intentionally changing
+    the checkpoint cadence for a much longer continuation.  Keep the override
+    opt-in so ordinary runs preserve the upstream resume behavior.
+    """
+
+    def on_train_begin(self, args, state, control, **kwargs):
+        forced_save_steps = os.environ.get("INTERNNAV_RESUME_SAVE_STEPS")
+        if forced_save_steps:
+            forced_save_steps = int(forced_save_steps)
+            if forced_save_steps <= 0:
+                raise ValueError("INTERNNAV_RESUME_SAVE_STEPS must be positive")
+            previous_save_steps = state.save_steps
+            state.save_steps = forced_save_steps
+            if state.is_world_process_zero:
+                logging.info(
+                    "Resume checkpoint cadence override: save_steps %s -> %s",
+                    previous_save_steps,
+                    forced_save_steps,
+                )
+        return control
+
+    def on_step_end(self, args, state, control, **kwargs):
+        if os.environ.get("INTERNNAV_FORCE_FINAL_CHECKPOINT") == "1" and state.global_step >= state.max_steps:
+            control.should_save = True
+        return control
 
 
 def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
@@ -76,6 +166,11 @@ def smart_tokenizer_and_embedding_resize(
 
 
 def set_model(model_args, model):
+    """Apply the stage-specific freeze policy described in the training guide.
+
+    Stage A passes all three tune flags as True and trains the Qwen VLM. Stage B
+    passes them as False, then selectively re-enables the System 1 modules below.
+    """
     if model_args.tune_mm_vision:
         for n, p in model.visual.named_parameters():
             p.requires_grad = True
@@ -101,6 +196,8 @@ def set_model(model_args, model):
         for n, p in model.lm_head.named_parameters():
             p.requires_grad = False
 
+    # Stage B 的梯度仍可“穿过”冻结的 Qwen transformer 流向 latent_queries；
+    # requires_grad=False 只是不更新 Qwen 参数，并不会切断计算图。
     if 'nextdit' in model_args.system1:
         modules = [
             'action_encoder',
@@ -127,6 +224,9 @@ def train(attn_implementation="flash_attention_2"):
 
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    # Dataset construction happens before Trainer.__init__, so seed here to
+    # make dataset sampling, prompt variants and augmentation reproducible.
+    transformers.set_seed(training_args.seed)
 
     local_rank = training_args.local_rank
     os.makedirs(training_args.output_dir, exist_ok=True)
@@ -146,6 +246,8 @@ def train(attn_implementation="flash_attention_2"):
     else:
         data_args.transform_train = v2.Resize((data_args.resize_h, data_args.resize_w))
 
+    # 注意：这里通过 checkpoint 路径字符串选择 DualVLN 类，而不是读取一个独立 CLI 开关。
+    # 因此 Stage B 的输入路径需要保留 `InternVLA-N1-System2` 这一名称。
     if 'internvla-n1-system2' in model_args.model_name_or_path.lower():
         model = InternVLAN1ForCausalLM.from_pretrained(
             model_args.model_name_or_path,
@@ -210,18 +312,31 @@ def train(attn_implementation="flash_attention_2"):
         model.visual.print_trainable_parameters()
         model.model.print_trainable_parameters()
 
+    # Dataset/collator 返回的字典会被 HF Trainer 原样展开为 model(**batch)。
+    # Trainer 没有自定义 compute_loss：loss 的含义完全由上面选择的模型类决定。
     if data_args.data_packing:
         data_module = make_supervised_data_module_packed(tokenizer=tokenizer, data_args=data_args)  # noqa: F821
     else:
         data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
-    trainer = Trainer(model=model, processing_class=tokenizer, args=training_args, **data_module)
-    from tabulate import tabulate
-
+    trainer = Trainer(
+        model=model,
+        processing_class=tokenizer,
+        args=training_args,
+        callbacks=[ResumeStateControlCallback()],
+        **data_module,
+    )
     if trainer.is_world_process_zero():
-        stat = []
-        for i, (n, p) in enumerate(trainer.model.named_parameters()):
-            stat.append([i, n, p.shape, p.requires_grad])
-        print(tabulate(stat, headers=["idx", "name", "shape", "trainable"]))
+        trainable_params = sum(p.numel() for p in trainer.model.parameters() if p.requires_grad)
+        total_params = sum(p.numel() for p in trainer.model.parameters())
+        if total_params:
+            print(
+                f"Trainable parameters: {trainable_params:,} / {total_params:,} "
+                f"({100 * trainable_params / total_params:.2f}%)"
+            )
+        else:
+            # ZeRO-3 may replace parameters with zero-sized local placeholders
+            # before this diagnostic runs. This must never block training.
+            print("Trainable parameter count unavailable after ZeRO-3 partitioning")
     if list(pathlib.Path(training_args.output_dir).glob("checkpoint-*")):
         logging.info("checkpoint found, resume training")
         trainer.train(resume_from_checkpoint=True)
@@ -232,7 +347,10 @@ def train(attn_implementation="flash_attention_2"):
 
     model.config.use_cache = True
 
-    safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
+    if training_args.skip_final_model_save:
+        logging.info("Skipping final model save as requested (smoke-test mode)")
+    else:
+        safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
 
 if __name__ == "__main__":

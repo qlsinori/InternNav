@@ -14,6 +14,9 @@ from transformers.models.qwen2_vl.modeling_qwen2_vl import (
 )
 from transformers.trainer import ALL_LAYERNORM_LAYERS, get_parameter_names
 
+# 中文说明见 docs/internvla_n1_training_guide/README.md#9-优化器梯度与-checkpoint。
+# 本文件在 import 时 monkey-patch Transformers Trainer，因而也是官方训练调用链的一部分。
+
 
 def _flash_attention_forward(
     query_states: torch.Tensor,
@@ -183,6 +186,8 @@ def create_optimizer(self):
     if self.optimizer is None:
         decay_parameters = get_parameter_names(opt_model, ALL_LAYERNORM_LAYERS)
         decay_parameters = [name for name in decay_parameters if "bias" not in name]
+        # 实现细节：vision_tower_lr 的独立参数组嵌套在 mm_projector_lr 分支中。
+        # 若只传 vision_tower_lr（官方 System 2 脚本即如此），会落到末尾的普通全局 LR 分组。
         if self.args.mm_projector_lr is not None and self.args.mm_projector_lr != 0:
             projector_parameters = [name for name, _ in opt_model.named_parameters() if "merger" in name]
             if self.args.vision_tower_lr is not None and self.args.vision_tower_lr != 0:
